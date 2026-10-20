@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software Designation Management</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header {
+            background: #1e3a8a;
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+        }
+
+        .header p {
+            margin: 0;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin: 7px 0;
+            font-size: 15px;
+            border-radius: 7px;
+        }
+
+        input, textarea {
+            border: 1px solid #cbd5e1;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .cancel-btn {
+            background: #64748b;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        .edit-btn {
+            background: #0f766e;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 14px;
+            color: white;
+            text-decoration: underline;
+        }
+
+        .message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #eaf0ff;
+        }
+
+        td button {
+            width: auto;
+            margin: 3px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header class="header">
+        <h1>Software Designation Management</h1>
+        <p>Add, view, edit, delete and search software designations.</p>
+        <a class="back-link" href="/dashboard.html">← Back to Dashboard</a>
+    </header>
+
+    <section class="panel">
+        <h2 id="formTitle">Add Designation</h2>
+
+        <form id="designationForm">
+            <input
+                type="hidden"
+                id="designationId"
+            >
+
+            <label for="designationName">Designation Name</label>
+            <input
+                type="text"
+                id="designationName"
+                placeholder="Example: Software Developer"
+                maxlength="100"
+                required
+            >
+
+            <label for="designationDescription">Description</label>
+            <textarea
+                id="designationDescription"
+                placeholder="Enter designation description"
+                maxlength="500"
+            ></textarea>
+
+            <button type="submit" id="saveButton">
+                Add Designation
+            </button>
+
+            <button
+                type="button"
+                class="cancel-btn"
+                id="cancelButton"
+                hidden
+            >
+                Cancel Edit
+            </button>
+        </form>
+
+        <p class="message" id="formMessage" role="status"></p>
+    </section>
+
+    <section class="panel">
+        <h2>Designation List</h2>
+
+        <input
+            type="search"
+            id="searchInput"
+            placeholder="Search by designation name or description..."
+        >
+
+        <p id="countText">Loading designations...</p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Designation</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="designationTable">
+                    <tr>
+                        <td colspan="4" class="empty">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="message" id="listMessage" role="status"></p>
+    </section>
+
+</div>
+
+<script>
+    const API_URL = "/api/designations";
+
+    const form = document.getElementById("designationForm");
+    const idInput = document.getElementById("designationId");
+    const nameInput = document.getElementById("designationName");
+    const descriptionInput = document.getElementById("designationDescription");
+    const tableBody = document.getElementById("designationTable");
+    const searchInput = document.getElementById("searchInput");
+    const countText = document.getElementById("countText");
+    const formMessage = document.getElementById("formMessage");
+    const listMessage = document.getElementById("listMessage");
+    const formTitle = document.getElementById("formTitle");
+    const saveButton = document.getElementById("saveButton");
+    const cancelButton = document.getElementById("cancelButton");
+
+    let designations = [];
+
+    async function apiRequest(url, options = {}) {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                ...(options.headers || {})
+            }
+        });
+
+        const result = await response.json().catch(() => ({
+            success: false,
+            message: "Invalid server response"
+        }));
+
+        if (!response.ok || result.success === false) {
+            throw new Error(result.message || "Request failed");
+        }
+
+        return result;
+    }
+
+    async function loadDesignations() {
+        tableBody.innerHTML =
+            '<tr><td colspan="4" class="empty">Loading...</td></tr>';
+
+        try {
+            const result = await apiRequest(API_URL);
+            designations = Array.isArray(result.data) ? result.data : [];
+            listMessage.textContent = "";
+            renderDesignations();
+        } catch (error) {
+            tableBody.innerHTML =
+                '<tr><td colspan="4" class="empty">Unable to load designations.</td></tr>';
+
+            countText.textContent = "";
+            listMessage.textContent = error.message;
+        }
+    }
+
+    function renderDesignations() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        const filtered = designations.filter(item => {
+            const name = String(item.designation_name || "").toLowerCase();
+            const description = String(item.description || "").toLowerCase();
+
+            return name.includes(searchTerm) ||
+                description.includes(searchTerm);
+        });
+
+        countText.textContent =
+            "Showing " + filtered.length + " of " +
+            designations.length + " designations";
+
+        tableBody.innerHTML = "";
+
+        if (filtered.length === 0) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+
+            cell.colSpan = 4;
+            cell.className = "empty";
+            cell.textContent = designations.length === 0
+                ? "No designations added yet."
+                : "No matching designations found.";
+
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+            return;
+        }
+
+        filtered.forEach(item => {
+            const row = document.createElement("tr");
+
+            addCell(row, item.id);
+            addCell(row, item.designation_name);
+            addCell(row, item.description || "-");
+
+            const actionCell = document.createElement("td");
+
+            const editButton = document.createElement("button");
+            editButton.textContent = "Edit";
+            editButton.className = "edit-btn";
+            editButton.type = "button";
+            editButton.addEventListener("click", () => editDesignation(item));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.className = "delete-btn";
+            deleteButton.type = "button";
+            deleteButton.addEventListener("click", () => deleteDesignation(item));
+
+            actionCell.append(editButton, deleteButton);
+            row.appendChild(actionCell);
+            tableBody.appendChild(row);
+        });
+    }
+
+    function addCell(row, value) {
+        const cell = document.createElement("td");
+        cell.textContent = String(value);
+        row.appendChild(cell);
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const id = idInput.value;
+        const designationName = nameInput.value.trim();
+        const description = descriptionInput.value.trim();
+
+        if (!designationName) {
+            formMessage.textContent = "Please enter a designation name.";
+            return;
+        }
+
+        const payload = {
+            designation_name: designationName,
+            description: description
+        };
+
+        saveButton.disabled = true;
+        formMessage.textContent = "Saving...";
+
+        try {
+            if (id) {
+                await apiRequest(API_URL + "/" + encodeURIComponent(id), {
+                    method: "PUT",
+                    body: JSON.stringify(payload)
+                });
+
+                formMessage.textContent = "Designation updated successfully.";
+            } else {
+                await apiRequest(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                formMessage.textContent = "Designation added successfully.";
+            }
+
+            resetForm();
+            await loadDesignations();
+        } catch (error) {
+            formMessage.textContent = error.message;
+        } finally {
+            saveButton.disabled = false;
+        }
+    });
+
+    function editDesignation(item) {
+        idInput.value = item.id;
+        nameInput.value = item.designation_name || "";
+        descriptionInput.value = item.description || "";
+
+        formTitle.textContent = "Edit Designation";
+        saveButton.textContent = "Update Designation";
+        cancelButton.hidden = false;
+        formMessage.textContent = "";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        nameInput.focus();
+    }
+
+    async function deleteDesignation(item) {
+        const confirmed = window.confirm(
+            'Delete designation "' + item.designation_name + '"?'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await apiRequest(
+                API_URL + "/" + encodeURIComponent(item.id),
+                { method: "DELETE" }
+            );
+
+            formMessage.textContent = "Designation deleted successfully.";
+
+            if (idInput.value === String(item.id)) {
+                resetForm();
+            }
+
+            await loadDesignations();
+        } catch (error) {
+            listMessage.textContent = error.message;
+        }
+    }
+
+    function resetForm() {
+        form.reset();
+        idInput.value = "";
+        formTitle.textContent = "Add Designation";
+        saveButton.textContent = "Add Designation";
+        cancelButton.hidden = true;
+    }
+
+    cancelButton.addEventListener("click", () => {
+        resetForm();
+        formMessage.textContent = "";
+    });
+
+    searchInput.addEventListener("input", renderDesignations);
+
+    loadDesignations();
+</script>
+
+</body>
+</html>

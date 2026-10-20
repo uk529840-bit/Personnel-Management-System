@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Personnel Management System</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f6fb;
+            color: #1e293b;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .navbar {
+            background: #3730a3;
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .navbar h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logout-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 17px;
+            background: white;
+            color: #3730a3;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1250px;
+            margin: 30px auto;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        .welcome p {
+            margin: 0;
+            color: #64748b;
+        }
+
+        .user-info {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 8px 13px;
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            margin: 30px 0 15px;
+            font-size: 21px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 22px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, .04);
+        }
+
+        .stat-card p {
+            margin: 0 0 10px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .stat-card h2 {
+            margin: 0;
+            font-size: 29px;
+            color: #3730a3;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .dashboard-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, .04);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 24px rgba(15, 23, 42, .08);
+        }
+
+        .card-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            background: #eef2ff;
+            font-size: 25px;
+        }
+
+        .dashboard-card h3 {
+            margin: 0 0 9px;
+            font-size: 18px;
+        }
+
+        .dashboard-card p {
+            flex: 1;
+            margin: 0 0 20px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .dashboard-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .dashboard-btn:hover {
+            background: #3730a3;
+        }
+
+        .panel {
+            margin-top: 30px;
+            padding: 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th, td {
+            padding: 13px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        th {
+            background: #eef2ff;
+            color: #3730a3;
+        }
+
+        #statusMessage {
+            margin-top: 15px;
+            color: #b91c1c;
+            font-size: 14px;
+        }
+
+        footer {
+            padding: 25px 10px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 580px) {
+            .container {
+                width: 92%;
+                margin-top: 22px;
+            }
+
+            .welcome h1 {
+                font-size: 25px;
+            }
+
+            .stats, .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar h2 {
+                font-size: 18px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <h2>Personnel Management System</h2>
+
+        <div class="navbar-right">
+            <span id="navUser"></span>
+            <button class="logout-btn" id="logoutBtn" type="button">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- Welcome -->
+        <section class="welcome">
+            <h1>Welcome to Dashboard 👋</h1>
+            <p>Manage your organization's employees and daily operations.</p>
+            <div class="user-info" id="userInfo">Loading user information...</div>
+        </section>
+
+        <!-- Statistics -->
+        <h2 class="section-title">Overview</h2>
+
+        <section class="stats" id="statsSection">
+            <article class="stat-card">
+                <p>Total Employees</p>
+                <h2 id="employeeCount">—</h2>
+            </article>
+
+            <article class="stat-card">
+                <p>Total Departments</p>
+                <h2 id="departmentCount">—</h2>
+            </article>
+
+            <article class="stat-card">
+                <p>Total Designations</p>
+                <h2 id="designationCount">—</h2>
+            </article>
+
+            <article class="stat-card">
+                <p>Recent Employees</p>
+                <h2 id="recentCount">—</h2>
+            </article>
+        </section>
+
+        <!-- Management Cards -->
+        <h2 class="section-title">Management Modules</h2>
+
+        <section class="cards" id="managementCards">
+
+            <article class="dashboard-card admin-card">
+                <div class="card-icon">👥</div>
+                <h3>Employee Management</h3>
+                <p>Add, view, update, search and manage employee information.</p>
+                <a href="/employees.html" class="dashboard-btn">
+                    Open Employees →
+                </a>
+            </article>
+
+            <article class="dashboard-card admin-card">
+                <div class="card-icon">🏢</div>
+                <h3>Department Management</h3>
+                <p>Manage departments and maintain department details.</p>
+                <a href="/departments.html" class="dashboard-btn">
+                    Open Departments →
+                </a>
+            </article>
+
+            <article class="dashboard-card admin-card">
+                <div class="card-icon">💼</div>
+                <h3>Designation Management</h3>
+                <p>Manage job designations and employee positions.</p>
+                <a href="/designations.html" class="dashboard-btn">
+                    Open Designations →
+                </a>
+            </article>
+
+            <article class="dashboard-card">
+                <div class="card-icon">📅</div>
+                <h3>Attendance Management</h3>
+                <p>Record attendance, check-in and check-out, and view attendance history.</p>
+                <a href="/attendance.html" class="dashboard-btn">
+                    Open Attendance →
+                </a>
+            </article>
+
+            <article class="dashboard-card">
+                <div class="card-icon">💰</div>
+                <h3>Payroll Management</h3>
+                <p>Generate salary records, review payroll and update approval or payment status.</p>
+                <a href="/payroll.html" class="dashboard-btn">
+                    Open Payroll →
+                </a>
+            </article>
+
+        </section>
+
+        <!-- Recent Employees -->
+        <section class="panel" id="recentEmployeesPanel">
+            <h2>Recent Employees</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="recentEmployees">
+                        <tr>
+                            <td colspan="4">Loading employees...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="statusMessage" role="status" aria-live="polite"></div>
+
+    </main>
+
+    <footer>
+        Personnel Management System &copy; 2026
+    </footer>
+
+    <script>
+        /*
+         * Dashboard UI and module navigation.
+         * Existing API endpoints and response fields can differ by project.
+         * Failed statistics requests will show a message instead of breaking
+         * the Attendance and Payroll navigation links.
+         */
+
+        const statusMessage = document.getElementById("statusMessage");
+
+        async function requestJSON(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(options.headers || {})
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || "Request failed");
+            }
+
+            return result;
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            })[char]);
+        }
+
+        function getRows(result) {
+            if (Array.isArray(result.data)) return result.data;
+            if (Array.isArray(result.employees)) return result.employees;
+            return [];
+        }
+
+        async function loadUser() {
+            try {
+                const result = await requestJSON("/api/auth/me");
+                const user = result.user || result.data || result;
+
+                document.getElementById("navUser").textContent =
+                    user.name || user.username || "";
+
+                document.getElementById("userInfo").textContent =
+                    "Logged in as: " +
+                    (user.name || user.username || user.role || "User");
+
+                if (user.role !== "admin") {
+                    document.querySelectorAll(".admin-card").forEach(card => {
+                        card.style.display = "none";
+                    });
+
+                    document.getElementById("statsSection").style.display = "none";
+                    document.getElementById("recentEmployeesPanel").style.display = "none";
+                }
+
+                return user;
+            } catch (error) {
+                document.getElementById("userInfo").textContent =
+                    "Your dashboard is open. Some account details could not be loaded.";
+                return null;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [employeeResult, departmentResult, designationResult] =
+                    await Promise.all([
+                        requestJSON("/api/employees"),
+                        requestJSON("/api/departments"),
+                        requestJSON("/api/designations")
+                    ]);
+
+                const employees = getRows(employeeResult);
+                const departments = getRows(departmentResult);
+                const designations = getRows(designationResult);
+
+                document.getElementById("employeeCount").textContent =
+                    employeeResult.count ?? employees.length;
+
+                document.getElementById("departmentCount").textContent =
+                    departmentResult.count ?? departments.length;
+
+                document.getElementById("designationCount").textContent =
+                    designationResult.count ?? designations.length;
+
+                const recent = employees.slice(-5).reverse();
+
+                document.getElementById("recentCount").textContent =
+                    recent.length;
+
+                const recentBody = document.getElementById("recentEmployees");
+
+                if (recent.length === 0) {
+                    recentBody.innerHTML =
+                        '<tr><td colspan="4">No employee records found.</td></tr>';
+                    return;
+                }
+
+                recentBody.innerHTML = recent.map(employee => `
+                    <tr>
+                        <td>${escapeHTML(employee.employee_id || employee.id)}</td>
+                        <td>${escapeHTML(employee.name)}</td>
+                        <td>${escapeHTML(employee.department_name || employee.department || "-")}</td>
+                        <td>${escapeHTML(employee.designation_name || employee.designation || "-")}</td>
+                    </tr>
+                `).join("");
+
+            } catch (error) {
+                statusMessage.textContent =
+                    "Some dashboard statistics could not be loaded. You can still open Attendance and Payroll.";
+                document.getElementById("recentEmployees").innerHTML =
+                    '<tr><td colspan="4">Employee summary is temporarily unavailable.</td></tr>';
+            }
+        }
+
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            try {
+                await requestJSON("/api/auth/logout", { method: "POST" });
+                window.location.href = "/login.html";
+            } catch (error) {
+                statusMessage.textContent =
+                    "Logout failed. Please try again.";
+            }
+        });
+
+        async function initializeDashboard() {
+            await loadUser();
+            await loadDashboardData();
+        }
+
+        initializeDashboard();
+    </script>
+
+</body>
+</html>

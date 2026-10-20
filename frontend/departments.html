@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMS | Department Management</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f5f9;
+            color: #17324d;
+        }
+
+        header {
+            background: #173f5f;
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #173f5f12;
+        }
+
+        h1, h2 {
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 44px;
+        }
+
+        button {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 4px 3px 4px 0;
+            background: #173f5f;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.88;
+        }
+
+        .secondary {
+            background: #64748b;
+        }
+
+        .edit {
+            background: #b7791f;
+        }
+
+        .delete {
+            background: #b42318;
+        }
+
+        .search-box {
+            max-width: 420px;
+            margin-bottom: 16px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            background: #eef5fb;
+        }
+
+        #message {
+            margin: 14px 0;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #167344;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        @media (max-width: 500px) {
+            main {
+                padding: 12px;
+                margin: 15px auto;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <strong>Personnel Management System</strong>
+        <nav>
+            <a href="/dashboard.html">Dashboard</a>
+            <a href="/employees.html">Employees</a>
+            <a href="/login.html" id="logoutLink">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Department Management</h1>
+        <p>Add, view, edit, search and delete departments.</p>
+
+        <section class="card">
+            <h2 id="formTitle">Add Department</h2>
+
+            <form id="departmentForm">
+                <div class="form-grid">
+                    <div>
+                        <label for="departmentName">Department Name *</label>
+                        <input
+                            id="departmentName"
+                            name="department_name"
+                            type="text"
+                            maxlength="100"
+                            placeholder="e.g. Computer Science"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="description">Description</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            maxlength="1000"
+                            placeholder="Department details"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <p>
+                    <button type="submit" id="saveButton">Add Department</button>
+                    <button type="button" class="secondary" id="cancelButton" hidden>
+                        Cancel Edit
+                    </button>
+                </p>
+            </form>
+
+            <p id="message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card">
+            <h2>Department List</h2>
+
+            <input
+                class="search-box"
+                id="searchInput"
+                type="search"
+                placeholder="Search department name or description..."
+                aria-label="Search departments"
+            >
+
+            <p id="countText">Loading departments...</p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Department Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="departmentTable">
+                        <tr>
+                            <td colspan="4">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = "/api/departments";
+
+        const form = document.getElementById("departmentForm");
+        const nameInput = document.getElementById("departmentName");
+        const descriptionInput = document.getElementById("description");
+        const searchInput = document.getElementById("searchInput");
+        const tableBody = document.getElementById("departmentTable");
+        const message = document.getElementById("message");
+        const saveButton = document.getElementById("saveButton");
+        const cancelButton = document.getElementById("cancelButton");
+        const formTitle = document.getElementById("formTitle");
+        const countText = document.getElementById("countText");
+
+        let editingId = null;
+        let departments = [];
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = type || "";
+        }
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options,
+                headers: {
+                    ...(options.body ? { "Content-Type": "application/json" } : {}),
+                    ...(options.headers || {})
+                }
+            });
+
+            const result = await response.json().catch(() => ({
+                success: false,
+                message: "Invalid server response"
+            }));
+
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = "/login.html";
+                throw new Error("Please log in again.");
+            }
+
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || "Request failed");
+            }
+
+            return result;
+        }
+
+        async function loadDepartments() {
+            tableBody.innerHTML =
+                '<tr><td colspan="4">Loading departments...</td></tr>';
+
+            try {
+                const search = searchInput.value.trim();
+                const result = await apiRequest(
+                    API_URL + "?search=" + encodeURIComponent(search)
+                );
+
+                departments = result.data || [];
+                renderDepartments(departments);
+            } catch (error) {
+                tableBody.innerHTML =
+                    '<tr><td colspan="4">Unable to load departments.</td></tr>';
+                countText.textContent = "";
+                showMessage(error.message, "error");
+            }
+        }
+
+        function renderDepartments(items) {
+            tableBody.replaceChildren();
+            countText.textContent = "Departments found: " + items.length;
+
+            if (items.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 4;
+                cell.textContent = "No departments found.";
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+                return;
+            }
+
+            items.forEach((department) => {
+                const row = document.createElement("tr");
+
+                [
+                    department.id,
+                    department.department_name,
+                    department.description || "-"
+                ].forEach((value) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = String(value);
+                    row.appendChild(cell);
+                });
+
+                const actions = document.createElement("td");
+
+                const editButton = document.createElement("button");
+                editButton.textContent = "Edit";
+                editButton.className = "edit";
+                editButton.type = "button";
+                editButton.addEventListener("click", () => {
+                    startEdit(department);
+                });
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete";
+                deleteButton.type = "button";
+                deleteButton.addEventListener("click", () => {
+                    deleteDepartment(department);
+                });
+
+                actions.append(editButton, deleteButton);
+                row.appendChild(actions);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function startEdit(department) {
+            editingId = department.id;
+            nameInput.value = department.department_name || "";
+            descriptionInput.value = department.description || "";
+
+            formTitle.textContent = "Edit Department";
+            saveButton.textContent = "Update Department";
+            cancelButton.hidden = false;
+            showMessage("Editing department ID " + department.id, "");
+            nameInput.focus();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function resetForm() {
+            editingId = null;
+            form.reset();
+            formTitle.textContent = "Add Department";
+            saveButton.textContent = "Add Department";
+            cancelButton.hidden = true;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const departmentName = nameInput.value.trim();
+
+            if (!departmentName) {
+                showMessage("Department name is required.", "error");
+                nameInput.focus();
+                return;
+            }
+
+            const payload = {
+                department_name: departmentName,
+                description: descriptionInput.value.trim()
+            };
+
+            const url = editingId === null
+                ? API_URL
+                : API_URL + "/" + editingId;
+
+            const method = editingId === null ? "POST" : "PUT";
+
+            saveButton.disabled = true;
+
+            try {
+                const result = await apiRequest(url, {
+                    method,
+                    body: JSON.stringify(payload)
+                });
+
+                showMessage(
+                    result.message ||
+                    (method === "POST"
+                        ? "Department added successfully."
+                        : "Department updated successfully."),
+                    "success"
+                );
+
+                resetForm();
+                await loadDepartments();
+            } catch (error) {
+                showMessage(error.message, "error");
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+        cancelButton.addEventListener("click", () => {
+            resetForm();
+            showMessage("Edit cancelled.", "");
+        });
+
+        async function deleteDepartment(department) {
+            const confirmed = window.confirm(
+                'Delete department "' + department.department_name + '"?'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                const result = await apiRequest(
+                    API_URL + "/" + department.id,
+                    { method: "DELETE" }
+                );
+
+                if (editingId === department.id) {
+                    resetForm();
+                }
+
+                showMessage(
+                    result.message || "Department deleted successfully.",
+                    "success"
+                );
+
+                await loadDepartments();
+            } catch (error) {
+                showMessage(error.message, "error");
+            }
+        }
+
+        let searchTimer;
+
+        searchInput.addEventListener("input", () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadDepartments, 250);
+        });
+
+        document.getElementById("logoutLink")
+            .addEventListener("click", async (event) => {
+                event.preventDefault();
+
+                try {
+                    await apiRequest("/api/auth/logout", {
+                        method: "POST"
+                    });
+                } catch (error) {
+                    // Return to login even if the logout request fails.
+                }
+
+                window.location.replace("/login.html");
+            });
+
+        loadDepartments();
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadDepartments()">
+
+<header>
+    <h1>Personnel Management System</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="employees.html">Employees</a>
+        <a href="department.html" class="active">Departments</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <h2>Department Management</h2>
+
+    <form id="departmentForm">
+
+        <label>Department ID</label>
+        <input type="text"
+               id="deptId"
+               placeholder="Enter Department ID"
+               required>
+
+        <label>Department Name</label>
+        <input type="text"
+               id="deptName"
+               placeholder="Enter Department Name"
+               required>
+
+        <label>Department Head</label>
+        <input type="text"
+               id="deptHead"
+               placeholder="Enter Department Head"
+               required>
+
+        <button type="button"
+                onclick="addDepartment()">
+            Save Department
+        </button>
+
+    </form>
+
+    <br>
+
+    <input
+        type="text"
+        id="searchDepartment"
+        placeholder="Search Department ID / Name / Head"
+        onkeyup="searchDepartment()">
+
+    <br><br>
+
+    <table id="departmentTable">
+
+        <tr>
+            <th>Department ID</th>
+            <th>Department Name</th>
+            <th>
+</table>
+
+    <br>
+
+    <h3>
+        Total Departments :
+        <span id="departmentCount">0</span>
+    </h3>
+
+</div>
+
+<footer>
+    <p>&copy; 2026 Personnel Management System</p>
+</footer>
+
+<script src="department.js"></script>
+
+</body>
+</html>

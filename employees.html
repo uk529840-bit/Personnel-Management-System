@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management - PMS</title>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .photo-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: none;
+            margin: 10px 0;
+        }
+
+        .photo-upload-section {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Personnel Management System</h1>
+    </header>
+
+    <nav>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/employees.html">Employees</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/designations.html">Designations</a>
+    </nav>
+
+    <main class="container">
+        <h2>Employee Management</h2>
+
+        <p>
+            Existing employee add, edit, delete and search functions
+            should continue to use your backend API.
+        </p>
+
+        <h3>Search Employee</h3>
+        <input
+            type="text"
+            id="search"
+            placeholder="Search Employee ID or Name"
+        >
+        <button type="button" id="searchButton">Search</button>
+        <button type="button" id="showAllButton">Show All</button>
+
+        <p>Total Employees: <strong id="employeeCount">0</strong></p>
+
+        <div style="overflow-x:auto;">
+            <table border="1" id="employeeTable">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Employee ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Joining Date</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                    <tr>
+                        <td colspan="8">Loading employees...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <section class="photo-upload-section">
+            <h3>Upload Employee Photo</h3>
+
+            <form id="photoForm">
+                <label for="photoEmployeeId">Employee ID</label><br>
+                <input
+                    type="text"
+                    id="photoEmployeeId"
+                    placeholder="Example: EMP001"
+                    required
+                >
+
+                <br><br>
+
+                <label for="employeePhoto">Select Photo (JPG, PNG or WEBP)</label><br>
+                <input
+                    type="file"
+                    id="employeePhoto"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    required
+                >
+
+                <br>
+
+                <img
+                    id="photoPreview"
+                    class="photo-preview"
+                    alt="Selected employee photo preview"
+                >
+
+                <br>
+
+                <button type="submit">Upload Photo</button>
+            </form>
+
+            <p id="photoMessage" class="message" role="status"></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 Personnel Management System</p>
+    </footer>
+
+    <script src="/js/employees.js"></script>
+
+    <script>
+        const photoInput = document.getElementById("employeePhoto");
+        const photoPreview = document.getElementById("photoPreview");
+        const photoForm = document.getElementById("photoForm");
+        const photoMessage = document.getElementById("photoMessage");
+
+        photoInput.addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (!file) {
+                photoPreview.style.display = "none";
+                photoPreview.removeAttribute("src");
+                return;
+            }
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            if (!allowedTypes.includes(file.type)) {
+                alert("JPG, PNG or WEBP photo mattum select pannunga.");
+                this.value = "";
+                photoPreview.style.display = "none";
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Photo size 5 MB-kku keezha irukkanum.");
+                this.value = "";
+                photoPreview.style.display = "none";
+                return;
+            }
+
+            photoPreview.src = URL.createObjectURL(file);
+            photoPreview.style.display = "block";
+        });
+
+        photoForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const employeeId = document
+                .getElementById("photoEmployeeId")
+                .value.trim();
+
+            const file = photoInput.files[0];
+
+            if (!employeeId || !file) {
+                photoMessage.textContent = "Employee ID and photo select pannunga.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("photo", file);
+
+            photoMessage.textContent = "Uploading photo...";
+
+            try {
+                const response = await fetch(
+                    "/api/profiles/" + encodeURIComponent(employeeId) + "/photo",
+                    {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin"
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || "Photo upload failed.");
+                }
+
+                photoMessage.textContent = "Photo uploaded successfully!";
+                photoForm.reset();
+                photoPreview.style.display = "none";
+                photoPreview.removeAttribute("src");
+
+                if (typeof loadEmployees === "function") {
+                    loadEmployees();
+                }
+            } catch (error) {
+                photoMessage.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

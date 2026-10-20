@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Management | PMS</title>
+  <link rel="stylesheet" href="css/employees.css">
+  <script src="js/employees.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">P</div>
+      <div>
+        <h2>Personnel MS</h2>
+        <small>Management System</small>
+      </div>
+    </div>
+
+    <p class="menu-label">MAIN MENU</p>
+    <a class="nav-link" href="dashboard.html">▦ &nbsp; Dashboard</a>
+    <a class="nav-link active" href="employees.html">♙ &nbsp; Employees</a>
+    <a class="nav-link" href="departments.html">▤ &nbsp; Departments</a>
+    <a class="nav-link" href="designations.html">▣ &nbsp; Designations</a>
+
+    <div class="sidebar-bottom">
+      <div class="profile-mark">P</div>
+      <div>
+        <strong>Personnel Admin</strong>
+        <small>Management Portal</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PERSONNEL MANAGEMENT SYSTEM</p>
+        <h1>Employee Management</h1>
+        <p class="subtitle">Manage your employees, details and records.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="showAddForm">
+        + Add Employee
+      </button>
+    </header>
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-icon blue">♙</div>
+        <div>
+          <p>Total Employees</p>
+          <h2 id="totalEmployees">0</h2>
+          <small>Employee records</small>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-icon purple">▤</div>
+        <div>
+          <p>Departments</p>
+          <h2 id="totalDepartments">—</h2>
+          <small>Available departments</small>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-icon green">✓</div>
+        <div>
+          <p>System Status</p>
+          <h2 class="status-text">Connected</h2>
+          <small>Employee records service</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" id="employeeFormPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <h2 id="formTitle">Add New Employee</h2>
+          <p>Enter the employee details below.</p>
+        </div>
+        <button type="button" class="btn btn-light" id="cancelForm">Cancel</button>
+      </div>
+
+      <form id="employeeForm">
+        <input type="hidden" id="recordId">
+
+        <div class="form-grid">
+          <label>
+            Employee ID <span>*</span>
+            <input id="employeeId" required maxlength="30" placeholder="EMP003">
+          </label>
+
+          <label>
+            Full Name <span>*</span>
+            <input id="employeeName" required maxlength="100" placeholder="Enter full name">
+          </label>
+
+          <label>
+            Email <span>*</span>
+            <input id="employeeEmail" type="email" required maxlength="150" placeholder="name@example.com">
+          </label>
+
+          <label>
+            Phone
+            <input id="employeePhone" type="tel" maxlength="20" placeholder="Phone number">
+          </label>
+
+          <label>
+            Department ID
+            <input id="departmentId" type="number" min="1" placeholder="Example: 1">
+          </label>
+
+          <label>
+            Designation
+            <input id="designation" maxlength="100" placeholder="Software Developer">
+          </label>
+
+          <label>
+            Salary
+            <input id="salary" type="number" min="0" step="0.01" placeholder="25000">
+          </label>
+
+          <label>
+            Joining Date
+            <input id="joiningDate" type="date">
+          </label>
+        </div>
+
+        <p id="formMessage" class="message" role="status"></p>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-light" id="cancelFormBottom">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEmployee">Save Employee</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading directory-heading">
+        <div>
+          <h2>Employee Directory</h2>
+          <p>Search, update and manage employee records.</p>
+        </div>
+        <span class="count-badge"><span id="visibleCount">0</span> records</span>
+      </div>
+
+      <div class="search-row">
+        <div class="search-box">
+          <span>⌕</span>
+          <input type="search" id="searchInput" placeholder="Search by ID, name or email...">
+        </div>
+        <button type="button" class="btn btn-light" id="showAll">Show All</button>
+        <button type="button" class="btn btn-light" id="refreshEmployees">↻ Refresh</button>
+      </div>
+
+      <p id="pageMessage" class="message" role="status"></p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>EMPLOYEE</th>
+              <th>EMAIL & PHONE</th>
+              <th>DEPARTMENT</th>
+              <th>DESIGNATION</th>
+              <th>SALARY</th>
+              <th>JOINING DATE</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="employeeTableBody">
+            <tr><td colspan="7" class="empty-state">Loading employees...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>© 2026 Personnel Management System <span>Employee Management Portal</span></footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+</body>
+</html>

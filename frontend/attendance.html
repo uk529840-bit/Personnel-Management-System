@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance | PMS</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .attendance-container {
+            max-width: 1150px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .attendance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .attendance-card {
+            background: #fff;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .attendance-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .attendance-form label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .attendance-form input,
+        .attendance-form select,
+        .attendance-form button {
+            width: 100%;
+            padding: 11px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .attendance-form button,
+        .action-button {
+            background: #1769aa;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .attendance-form button:hover,
+        .action-button:hover {
+            background: #10558c;
+        }
+
+        .attendance-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        .attendance-table th {
+            background: #f3f6fa;
+        }
+
+        .attendance-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .action-button {
+            padding: 11px 18px;
+            border-radius: 6px;
+        }
+
+        .secondary-button {
+            background: #555;
+        }
+
+        .status-message {
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .muted {
+            color: #666;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="attendance-container">
+
+        <header class="attendance-header">
+            <div>
+                <h1>Employee Attendance</h1>
+                <p class="muted">Personnel Management System</p>
+            </div>
+
+            <button
+                class="action-button secondary-button"
+                type="button"
+                id="dashboardButton">
+                Back to Dashboard
+            </button>
+        </header>
+
+        <section class="attendance-card" id="employeePanel" hidden>
+            <h2>My Attendance</h2>
+
+            <div class="attendance-actions">
+                <button class="action-button" id="checkInButton" type="button">
+                    Check In
+                </button>
+
+                <button class="action-button" id="checkOutButton" type="button">
+                    Check Out
+                </button>
+            </div>
+
+            <p id="employeeStatus" class="status-message" role="status"></p>
+        </section>
+
+        <section class="attendance-card" id="adminPanel" hidden>
+            <h2>Mark Employee Attendance</h2>
+
+            <form id="attendanceForm" class="attendance-form">
+                <div>
+                    <label for="employeeId">Employee Database ID</label>
+                    <input
+                        id="employeeId"
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        placeholder="Example: 2">
+                </div>
+
+                <div>
+                    <label for="attendanceDate">Attendance Date</label>
+                    <input
+                        id="attendanceDate"
+                        type="date"
+                        required>
+                </div>
+
+                <div>
+                    <label for="attendanceStatus">Status</label>
+                    <select id="attendanceStatus" required>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                        <option value="Leave">Leave</option>
+                        <option value="Half Day">Half Day</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="attendanceNotes">Notes (Optional)</label>
+                    <input
+                        id="attendanceNotes"
+                        type="text"
+                        maxlength="255"
+                        placeholder="Enter notes">
+                </div>
+
+                <div>
+                    <button type="submit">Save Attendance</button>
+                </div>
+            </form>
+
+            <p class="muted">
+                Employee Database ID என்பது employees table-ல் உள்ள id.
+                EMP001 போன்ற employee code அல்ல.
+            </p>
+
+            <p id="adminStatus" class="status-message" role="status"></p>
+        </section>
+
+        <section class="attendance-card">
+            <h2>Attendance Records</h2>
+
+            <div class="attendance-actions">
+                <button
+                    class="action-button"
+                    id="refreshButton"
+                    type="button">
+                    Refresh Records
+                </button>
+            </div>
+
+            <p id="recordsStatus" class="status-message" role="status"></p>
+
+            <div class="attendance-table-wrapper">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="attendanceTableBody">
+                        <tr>
+                            <td colspan="7">Loading attendance records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/js/attendance.js"></script>
+</body>
+</html>
